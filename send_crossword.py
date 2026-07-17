@@ -111,7 +111,8 @@ def send_email(link):
     msg = MIMEText(f"Today's crossword: {link}")
     msg["Subject"] = "Crossword time!"
     msg["From"] = os.environ["GMAIL_USER"]
-    msg["To"] = ", ".join(os.environ["RECIPIENTS"].split(","))
+    recipients = [r.strip() for r in os.environ["RECIPIENTS"].split(",") if r.strip()]
+    msg["To"] = ", ".join(recipients)
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
         s.login(os.environ["GMAIL_USER"], os.environ["GMAIL_APP_PASSWORD"])
         s.send_message(msg)
