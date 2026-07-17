@@ -1,5 +1,6 @@
 from playwright.sync_api import sync_playwright
-from datetime import date
+from datetime import datetime
+from zoneinfo import ZoneInfo
 import smtplib
 from email.mime.text import MIMEText
 import os
@@ -30,7 +31,8 @@ def block_ads(route):
 
 
 def get_puzzle_id():
-    return "tca" + date.today().strftime("%y%m%d")
+    pacific_today = datetime.now(ZoneInfo("America/Los_Angeles")).date()
+    return "tca" + pacific_today.strftime("%y%m%d")
 
 
 def get_share_link(args):
