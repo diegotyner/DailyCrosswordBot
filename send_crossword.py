@@ -82,11 +82,22 @@ def get_share_link(args):
         for f in page.frames:
             if "amuselabs" in f.url:
                 frame = f
+                print("Found amuselabs iframe")
                 break
 
         if frame is None:
             raise Exception("Could not find amuselabs puzzle iframe")
 
+        try:
+            frame.wait_for_selector(
+                ".nav-social-play-invite-icon", state="visible", timeout=20000
+            )
+        except Exception:
+            print(
+                f"Element count: {frame.locator('.nav-social-play-invite-icon').count()}"
+            )
+            print(frame.content())
+            raise
         frame.click(".nav-social-play-invite-icon")
         print("Button found and clicked")
 
