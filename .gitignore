@@ -1,0 +1,6 @@
+.venv
+.env
+__pycache__/
+*.pyc
+initial_page.html
+clicked_page.html

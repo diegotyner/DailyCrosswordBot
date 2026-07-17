@@ -1,0 +1,41 @@
+name: Send Crossword Link
+
+on:
+  schedule:
+    - cron: "0 19 * * *" # ~12pm PST (UTC-7/8, adjust seasonally)
+    - cron: "0 23 * * *" # ~4pm PST
+  workflow_dispatch: # lets you trigger manually from the Actions tab for testing
+
+jobs:
+  send-link:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+
+      - name: Ensure browser installed
+        run: playwright install --with-deps chromium
+
+      - name: Run crossword bot
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          RECIPIENTS: ${{ secrets.RECIPIENTS }}
+        run: python crossword_bot.py
