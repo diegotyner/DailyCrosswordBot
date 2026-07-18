@@ -2,8 +2,8 @@ name: Send Crossword Link
 
 on:
   schedule:
-    - cron: "0 19 * * *" # ~12pm PST (UTC-7/8, adjust seasonally)
-    - cron: "0 23 * * *" # ~4pm PST
+    - cron: "30 18 * * *" # Currently set to 11:30am PST, however on exuction it will run around 12-12:30pm which is the target time (UTC-7/8, adjust seasonally)
+    - cron: "30 22 * * *" # 3:30pm PST target, 30m-1h offset
   workflow_dispatch: # lets you trigger manually from the Actions tab for testing
 
 jobs:
