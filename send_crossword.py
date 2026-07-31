@@ -4,19 +4,40 @@ from zoneinfo import ZoneInfo
 import smtplib
 from email.mime.text import MIMEText
 import logging
+from logging.handlers import RotatingFileHandler
 import os
 import sys
 import time
 from dotenv import load_dotenv
 
-# Set up stdout logging suited for EC2 (systemd/journald, CloudWatch) and CI/CD runs
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    stream=sys.stdout,
-)
+# Ensure logs directory exists
+LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+os.makedirs(LOG_DIR, exist_ok=True)
+LOG_FILE = os.path.join(LOG_DIR, "crossword_bot.log")
+
+# Configure logger with dual handlers: stdout (console/CI) + RotatingFileHandler (persistent EC2 disk)
 logger = logging.getLogger("DailyCrosswordBot")
+logger.setLevel(logging.INFO)
+
+# Prevent duplicate handlers if module is re-imported
+if not logger.handlers:
+    log_formatter = logging.Formatter(
+        fmt="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+
+    # Console Handler (stdout)
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setFormatter(log_formatter)
+    logger.addHandler(stream_handler)
+
+    # Persistent Rotating File Handler (max 2 MB per log file, keep up to 5 backups)
+    file_handler = RotatingFileHandler(
+        LOG_FILE, maxBytes=2 * 1024 * 1024, backupCount=5, encoding="utf-8"
+    )
+    file_handler.setFormatter(log_formatter)
+    logger.addHandler(file_handler)
+
 
 AD_DOMAINS = [
     "doubleclick.net",
@@ -124,11 +145,21 @@ def scrape_single_attempt(url, args):
             logger.error(f"Scrape step failed: {e}")
             if page:
                 try:
-                    page.screenshot(path="error_screenshot.png")
-                    logger.info("Saved error_screenshot.png diagnostic")
+                    screenshot_path = os.path.join(LOG_DIR, "error_screenshot.png")
+                    page.screenshot(path=screenshot_path)
+                    logger.info(f"Saved diagnostic screenshot: {screenshot_path}")
                 except Exception as ss_err:
                     logger.warning(f"Failed to capture error screenshot: {ss_err}")
+
+                try:
+                    html_path = os.path.join(LOG_DIR, "error_page.html")
+                    with open(html_path, "w", encoding="utf-8") as f:
+                        f.write(page.content())
+                    logger.info(f"Saved diagnostic HTML page: {html_path}")
+                except Exception as html_err:
+                    logger.warning(f"Failed to save error HTML content: {html_err}")
             raise
+
         finally:
             if browser:
                 try:

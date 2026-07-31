@@ -5,4 +5,5 @@ __pycache__/
 initial_page.html
 clicked_page.html
 error_screenshot.png
+logs/
 
