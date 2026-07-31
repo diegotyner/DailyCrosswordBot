@@ -19,7 +19,13 @@ So that me and my friends can do the crossword every day without having to wonde
 
 ## Setup
 
-### EC2
+For each of the following, you'll need to have an updated installation of python and it is recommended to have venv up to date as well.
+
+- Activate venv: `python -m venv .venv` -> `source .venv/bin/activate`
+- Install dependencies (from root): `pip install -r requirements.txt`
+- ADDITIONALLY, install a browser for playwright: `playwright install --with-deps chromium`
+
+### AWS EC2
 
 1. Fork/clone repo
 2. Create a dedicated gmail account for the bot, enable 2FA, and generate an [App Password](https://myaccount.google.com/apppasswords)
@@ -27,11 +33,14 @@ So that me and my friends can do the crossword every day without having to wonde
    - `GMAIL_USER` (email address)
    - `GMAIL_APP_PASSWORD` — the app password
    - `RECIPIENTS` — comma-separated list of recipient emails
-4. Create a cron schedule for execution
+4. Create a cron schedule for execution.
+   - I've provided a sane default for a script you can point at (which requires a venv installation): `run_crossword.sh`.
+   - Then you'll have to configure the cronjob, the sample below runs my script at 12pm and 4pm. Make sure to use absolute paths, and remember to set it correctly to the EC2's timezone.
+     - `crontab -e` -> `0 12,16 * * * /path/to/DailyCrosswordBot/run_crossword.sh >> /path/to/DailyCrosswordBot/logs/cron_stdout.log 2>&1`
 
 ### GitHub Actions
 
-1. Fork/clone repo
+1. Fork/clone repo, but switch to the archive branch: `git checkout GithubActions_Archive`
 2. Create a dedicated gmail account for the bot, enable 2FA, and generate an [App Password](https://myaccount.google.com/apppasswords)
 3. Add the following variables as GitHub secrets:
    - `GMAIL_USER` (email address)
